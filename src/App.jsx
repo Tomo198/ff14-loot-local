@@ -310,7 +310,7 @@ export default function App() {
             <div>
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-600 bg-clip-text text-transparent leading-tight flex items-center gap-2">
                 FF14 Loot Manager
-                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.5 rounded border border-zinc-700 font-normal tracking-wider">LOCAL</span>
+                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.5 rounded border border-zinc-700 font-normal tracking-wider ml-2">LOCAL</span>
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-zinc-500">現在の周回数:</span>
@@ -341,7 +341,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-2 sm:p-4 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-2 sm:p-4 max-w-[1600px] mx-auto w-full">
         <div className="block lg:hidden h-full">
           <MobileView {...sharedProps} />
         </div>
@@ -566,11 +566,11 @@ const LootSummaryTable = React.memo(({ members }) => {
         </h2>
         <p className="text-xs text-zinc-500 mt-1">誰がどの部位を取得済みか、全体のバランスを一覧で確認できます。</p>
       </div>
-      <div className="overflow-x-auto pb-2">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+      <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
+        <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-zinc-950 text-zinc-400 text-xs tracking-wider border-b border-zinc-800">
-              <th className="p-3 font-medium w-40 sticky left-0 bg-zinc-950 z-20 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]" rowSpan={2}>
+              <th className="p-3 font-medium min-w-[150px] sticky left-0 bg-zinc-950 z-20 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]" rowSpan={2}>
                 メンバー
               </th>
               {ITEM_GROUPS.map(group => (
@@ -581,7 +581,7 @@ const LootSummaryTable = React.memo(({ members }) => {
             </tr>
             <tr className="bg-zinc-950 text-zinc-400 text-[10px] tracking-wider border-b border-zinc-800">
               {ITEM_GROUPS.flatMap(group => group.items.map(item => (
-                <th key={item.id} className="p-2 font-medium text-center min-w-[40px] border-r border-zinc-800/50">
+                <th key={item.id} className="p-2 font-medium text-center min-w-[50px] border-r border-zinc-800/50">
                   <span className="text-zinc-300">{item.short}</span>
                 </th>
               )))}
@@ -590,7 +590,7 @@ const LootSummaryTable = React.memo(({ members }) => {
           <tbody className="text-sm">
             {members.map(member => (
               <tr key={member.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                <td className="p-2 align-middle sticky left-0 bg-zinc-900 z-10 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
+                <td className="p-2 align-middle sticky left-0 bg-zinc-900 z-10 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[150px]">
                    <div className="flex items-center gap-2">
                      <span className={`font-bold text-sm ${getTextColor(member.job)} truncate max-w-[100px]`}>{member.name || '未設定'}</span>
                      <span className={`text-[10px] px-1 py-0.5 rounded ${getJobStyle(member.job)} shrink-0`}>{member.job || '未'}</span>
@@ -747,22 +747,22 @@ function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetI
               メンバー設定・操作テーブル
             </h2>
           </div>
-          <div className="overflow-x-auto flex-1 pb-4">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
+          <div className="overflow-x-auto flex-1 pb-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
+            <table className="w-full text-left border-collapse min-w-[1200px]">
               <thead>
                 <tr className="bg-zinc-950 text-zinc-400 text-xs tracking-wider border-b border-zinc-800">
-                  <th className="p-4 font-medium w-48 sticky left-0 bg-zinc-950 z-20 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]" rowSpan={2}>
+                  <th className="p-4 font-medium min-w-[200px] w-[200px] sticky left-0 bg-zinc-950 z-20 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]" rowSpan={2}>
                     メンバー設定
                   </th>
                   {ITEM_GROUPS.map(group => (
-                    <th key={group.name} colSpan={group.items.length} className={`p-1.5 font-bold text-center border-r border-zinc-800/80 ${group.color}`}>
+                    <th key={group.name} colSpan={group.items.length} className={`p-2 font-bold text-center border-r border-zinc-800/80 ${group.color}`}>
                       {group.name}
                     </th>
                   ))}
                 </tr>
-                <tr className="bg-zinc-950 text-zinc-400 text-[10px] tracking-wider border-b border-zinc-800">
+                <tr className="bg-zinc-950 text-zinc-400 text-[11px] tracking-wider border-b border-zinc-800">
                   {ITEM_GROUPS.flatMap(group => group.items.map(item => (
-                    <th key={item.id} className="p-2 font-medium text-center min-w-[70px] border-r border-zinc-800/50">
+                    <th key={item.id} className="p-2 font-medium text-center min-w-[75px] border-r border-zinc-800/50">
                       <div className="flex flex-col items-center">
                         <span className="text-zinc-300">{item.short}</span>
                       </div>
@@ -773,15 +773,15 @@ function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetI
               <tbody className="text-sm">
                 {members.map(member => (
                   <tr key={member.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors group">
-                    <td className="p-3 align-top sticky left-0 bg-zinc-900 group-hover:bg-zinc-800/80 z-10 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] transition-colors">
+                    <td className="p-3 align-top sticky left-0 bg-zinc-900 group-hover:bg-zinc-800/80 z-10 border-r border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] transition-colors min-w-[200px] w-[200px]">
                       <div className="flex flex-col gap-2">
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-2">
                           <input
                             type="text"
                             value={member.name}
                             onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
                             placeholder="名前"
-                            className={`bg-zinc-950 border border-zinc-700 rounded-md px-2 py-1.5 text-sm w-full focus:border-yellow-600 focus:outline-none transition-colors font-bold ${getTextColor(member.job)}`}
+                            className={`bg-zinc-950 border border-zinc-700 rounded-md px-2.5 py-2 text-sm w-full focus:border-yellow-600 focus:outline-none transition-colors font-bold ${getTextColor(member.job)}`}
                           />
                           <select
                             value={member.job}
@@ -806,28 +806,28 @@ function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetI
                       const isHighlight = isWanted && priorityMap[item.id]?.hasPriorityIds?.has(member.id);
 
                       return (
-                        <td key={item.id} className={`p-1.5 border-r border-zinc-800/30 align-top transition-colors relative ${
-                          isHighlight ? 'bg-yellow-900/10' : ''
+                        <td key={item.id} className={`p-2 border-r border-zinc-800/30 align-top transition-colors relative ${
+                          isHighlight ? 'bg-yellow-900/20' : ''
                         }`}>
                           {isHighlight && (
-                            <div className="absolute inset-0 border-[1.5px] border-yellow-600/30 pointer-events-none rounded-sm"></div>
+                            <div className="absolute inset-0 border-[2px] border-yellow-500/50 pointer-events-none rounded-sm"></div>
                           )}
-                          <div className="flex flex-col items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-2">
                             <div className="flex items-center justify-between w-full bg-zinc-950 rounded border border-zinc-800 overflow-hidden shadow-inner p-0.5">
                               <button
                                 onClick={() => handleGetItem(member.id, item.id, -1)}
-                                className="w-5 h-6 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:hover:bg-transparent text-xs"
+                                className="w-6 h-7 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:hover:bg-transparent text-sm font-bold"
                                 disabled={gets === 0}
                                 title="取得数を減らす"
                               >
                                 -
                               </button>
-                              <span className={`text-xs font-bold ${gets > 0 ? 'text-yellow-400' : 'text-zinc-600'}`}>
+                              <span className={`text-sm font-bold w-4 text-center ${gets > 0 ? 'text-yellow-400' : 'text-zinc-600'}`}>
                                 {gets}
                               </span>
                               <button
                                 onClick={() => handleGetItem(member.id, item.id, 1)}
-                                className="w-5 h-6 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-zinc-800 transition-colors text-xs"
+                                className="w-6 h-7 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-zinc-800 transition-colors text-sm font-bold"
                                 title="手動で取得数を増やす（履歴には残りません）"
                               >
                                 +
@@ -835,16 +835,16 @@ function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetI
                             </div>
                             <button
                               onClick={() => handleWantToggle(member.id, item.id)}
-                              className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
+                              className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
                                 isWanted 
-                                  ? 'bg-yellow-500 text-zinc-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.2)]' 
+                                  ? 'bg-yellow-500 text-zinc-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.3)]' 
                                   : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
                               }`}
                             >
                               希望 {isWanted && '★'}
                             </button>
                             {isHighlight && (
-                              <span className="text-[9px] text-yellow-400 font-bold bg-yellow-950/80 px-1 py-0.5 rounded-sm absolute -bottom-1 border border-yellow-700/50 shadow-sm leading-none">
+                              <span className="text-[10px] text-yellow-400 font-bold bg-yellow-950/90 px-1.5 py-0.5 rounded-sm absolute -bottom-2 border border-yellow-700/50 shadow-md leading-none z-10">
                                 候補
                               </span>
                             )}
@@ -978,21 +978,21 @@ function MobileView({ members, handleMemberChange, handleWantToggle, handleGetIt
                                 const isWanted = member.wants?.[item.id] ?? false;
                                 const gets = member.gets?.[item.id] ?? 0;
                                 return (
-                                  <div key={item.id} className="bg-zinc-950 border border-zinc-800 rounded-lg p-2 flex flex-col gap-2 relative">
+                                  <div key={item.id} className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 flex flex-col gap-3 relative">
                                     <div className="flex items-center justify-between">
-                                      <span className="text-xs font-medium text-zinc-300">{item.name}</span>
+                                      <span className="text-sm font-bold text-zinc-300">{item.name}</span>
                                       <button
                                         onClick={() => handleWantToggle(member.id, item.id)}
-                                        className={`text-[10px] font-bold px-2 py-1 rounded transition-colors z-10 ${isWanted ? 'bg-yellow-500 text-zinc-950 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}
+                                        className={`text-[10px] font-bold px-3 py-1.5 rounded transition-colors z-10 ${isWanted ? 'bg-yellow-500 text-zinc-950 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}
                                       >
                                         希望 {isWanted && '★'}
                                       </button>
                                     </div>
                                     
                                     <div className="flex items-center justify-between bg-zinc-900 rounded border border-zinc-800">
-                                      <button onClick={() => handleGetItem(member.id, item.id, -1)} disabled={gets === 0} className="w-7 h-7 flex items-center justify-center text-zinc-500 disabled:opacity-30">-</button>
-                                      <span className={`text-sm w-4 text-center font-bold ${gets > 0 ? 'text-zinc-200' : 'text-zinc-600'}`}>{gets}</span>
-                                      <button onClick={() => handleGetItem(member.id, item.id, 1)} className="w-7 h-7 flex items-center justify-center text-yellow-500">+</button>
+                                      <button onClick={() => handleGetItem(member.id, item.id, -1)} disabled={gets === 0} className="w-9 h-9 flex items-center justify-center text-zinc-500 disabled:opacity-30 text-lg">-</button>
+                                      <span className={`text-base w-4 text-center font-bold ${gets > 0 ? 'text-zinc-200' : 'text-zinc-600'}`}>{gets}</span>
+                                      <button onClick={() => handleGetItem(member.id, item.id, 1)} className="w-9 h-9 flex items-center justify-center text-yellow-500 text-lg">+</button>
                                     </div>
                                   </div>
                                 );

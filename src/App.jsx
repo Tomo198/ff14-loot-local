@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { validateBackup } from './utils/backup';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Sword, RotateCcw, Trash2, ListOrdered, ChevronRight, AlertCircle, Users, Trophy, ChevronDown, ChevronUp, Info, HelpCircle, LayoutList, History, AlertTriangle, X, Plus, Minus, Download, Upload } from 'lucide-react';
 
 // --- 定数定義 ---
@@ -72,56 +73,43 @@ const DEFAULT_MEMBERS = Array.from({ length: 8 }, (_, i) => ({
 
 const STORAGE_KEY = 'ff14LootDataLocal_Manager';
 
+function loadInitialData() {
+  const defaults = { members: DEFAULT_MEMBERS, history: [], contentCycle: 1 };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return { data: raw === null ? defaults : validateBackup(JSON.parse(raw), DEFAULT_MEMBERS, ITEM_TYPES.map(item => item.id)), error: '' };
+  } catch {
+    return { data: defaults, error: '保存データを読み込めませんでした。元のデータを保護するため自動保存を停止しています。必要に応じてバックアップを読み込んでください。' };
+  }
+}
+
 export default function App() {
-  const [members, setMembers] = useState(DEFAULT_MEMBERS);
-  const [history, setHistory] = useState([]);
-  const [contentCycle, setContentCycle] = useState(1);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [initial] = useState(loadInitialData);
+  const [members, setMembers] = useState(initial.data.members);
+  const [history, setHistory] = useState(initial.data.history);
+  const [contentCycle, setContentCycle] = useState(initial.data.contentCycle);
+  const [storageError, setStorageError] = useState(initial.error);
+  const saveAllowed = useRef(!initial.error);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: null, isDangerous: false });
 
-  // --- LocalStorage 読み込み (初回のみ) ---
-  useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
+  const updateData = useCallback((newMembers, newHistory = history, newCycle = contentCycle, requireSave = false) => {
+    const data = { members: newMembers, history: newHistory, contentCycle: newCycle };
+    let saved = false;
+    if (saveAllowed.current || requireSave) {
       try {
-        const parsedData = JSON.parse(savedData);
-        const savedMembers = parsedData.members || [];
-        const loadedMembers = savedMembers.map((m, index) => {
-          const defaultMember = DEFAULT_MEMBERS[index] || DEFAULT_MEMBERS[0];
-          return {
-            ...m,
-            id: m?.id || defaultMember.id,
-            wants: { ...defaultMember.wants, ...(m?.wants || {}) },
-            gets: { ...defaultMember.gets, ...(m?.gets || {}) },
-          };
-        });
-        while (loadedMembers.length < 8) {
-           loadedMembers.push(DEFAULT_MEMBERS[loadedMembers.length]);
-        }
-        setMembers(loadedMembers);
-        setHistory(Array.isArray(parsedData.history) ? parsedData.history : []);
-        setContentCycle(typeof parsedData.contentCycle === 'number' ? parsedData.contentCycle : 1);
-      } catch (e) {
-        console.error("ローカルデータの読み込みに失敗しました", e);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        saved = true;
+        saveAllowed.current = true;
+        setStorageError('');
+      } catch {
+        setStorageError('保存に失敗しました。再読み込みせず、現在のデータを「保存」からバックアップしてください。復元操作の場合、現在のデータは変更していません。');
       }
     }
-    setIsLoaded(true);
-  }, []);
-
-  // --- データ更新関数 (LocalStorageへ保存) ---
-  const updateData = useCallback((newMembers, newHistory, newCycle) => {
+    if (requireSave && !saved) return false;
     setMembers(newMembers);
-    if (newHistory !== undefined) setHistory(newHistory);
-    if (newCycle !== undefined) setContentCycle(newCycle);
-
-    // 変更をブラウザに保存
-    setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-        members: newMembers, 
-        history: newHistory !== undefined ? newHistory : history,
-        contentCycle: newCycle !== undefined ? newCycle : contentCycle
-      }));
-    }, 0);
+    setHistory(newHistory);
+    setContentCycle(newCycle);
+    return saved;
   }, [history, contentCycle]);
 
   // --- バックアップ機能 ---
@@ -138,23 +126,28 @@ export default function App() {
 
   const handleImport = useCallback((e) => {
     const file = e.target.files[0];
+    e.target.value = '';
     if (!file) return;
     const reader = new FileReader();
+    reader.onerror = () => alert('ファイルを読み込めませんでした。現在のデータは変更していません。');
+    reader.onabort = reader.onerror;
     reader.onload = (event) => {
       try {
-        const data = JSON.parse(event.target.result);
-        if (data.members) {
-          updateData(data.members, data.history || [], data.contentCycle || 1);
-          alert('バックアップデータを読み込みました。');
-        } else {
-          alert('ファイルの形式が正しくありません。');
-        }
-      } catch (err) {
-        alert('ファイルの読み込みに失敗しました。');
+        const data = validateBackup(JSON.parse(event.target.result), DEFAULT_MEMBERS, ITEM_TYPES.map(item => item.id));
+        setModalConfig({
+          isOpen: true,
+          title: 'バックアップから復元',
+          message: '現在のメンバー・取得状況・履歴をバックアップの内容に置き換えます。古いバックアップでは最近の変更が失われます。必要なデータはキャンセルして「保存」からバックアップしてください。',
+          isDangerous: true,
+          onConfirm: () => {
+            if (updateData(data.members, data.history, data.contentCycle, true)) alert('バックアップデータを読み込みました。');
+          },
+        });
+      } catch {
+        alert('ファイルの形式が正しくありません。現在のデータは変更していません。');
       }
     };
     reader.readAsText(file);
-    e.target.value = null; // リセット
   }, [updateData]);
 
   // --- 優先権の動的算出 ---
@@ -259,7 +252,6 @@ export default function App() {
     }, true);
   }, [members, contentCycle, requestConfirm, updateData]);
 
-  if (!isLoaded) return null;
 
   const sharedProps = {
     members, handleMemberChange, handleWantToggle, handleGetItem, handleDistribute, handleDeleteHistory, rankingData, priorityMap, history, contentCycle
@@ -303,6 +295,7 @@ export default function App() {
         </div>
       )}
 
+      {storageError && <div role="alert" className="bg-red-950 text-red-100 p-3 text-sm">{storageError}</div>}
       <header className="bg-zinc-900/80 border-b border-zinc-800 sticky top-0 z-50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-2">
@@ -651,7 +644,7 @@ function HelpPanel() {
 // ==========================================
 // PC用ビュー
 // ==========================================
-function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetItem, handleDistribute, handleDeleteHistory, rankingData, priorityMap, history, contentCycle }) {
+function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetItem, handleDistribute, handleDeleteHistory, rankingData, priorityMap, history }) {
   const [selectedQueueItem, setSelectedQueueItem] = useState(ITEM_TYPES[0].id);
 
   const priorityData = priorityMap[selectedQueueItem] || { minGets: 0, hasPriorityIds: new Set() };
@@ -731,11 +724,11 @@ function DesktopView({ members, handleMemberChange, handleWantToggle, handleGetI
 
       <div className="col-span-3 flex flex-col gap-6">
         
-        <div className="flex gap-6 items-stretch">
+        <div className="flex flex-col xl:flex-row gap-6 items-stretch">
           <div className="flex-1">
             <DistributePanel members={members} handleDistribute={handleDistribute} priorityMap={priorityMap} />
           </div>
-          <div className="flex-1 hidden xl:block">
+          <div className="flex-1">
             <HelpPanel />
           </div>
         </div>
@@ -902,6 +895,9 @@ function MobileView({ members, handleMemberChange, handleWantToggle, handleGetIt
           className={`flex-1 min-w-[65px] snap-center py-2 text-xs font-bold rounded-md flex justify-center items-center gap-1 transition-colors ${activeTab === 'summary' ? 'bg-yellow-500/10 text-yellow-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           <LayoutList className="w-4 h-4" /> 集計
+        </button>
+        <button onClick={() => setActiveTab('help')} className={activeTab === 'help' ? 'flex-1 min-w-[65px] py-2 text-xs font-bold text-yellow-400' : 'flex-1 min-w-[65px] py-2 text-xs font-bold text-zinc-400'}>
+          ヘルプ
         </button>
       </div>
 
